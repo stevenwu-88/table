@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>桌椅調校小幫手</title>
+<style>
+  :root{
+    --yellow:#FBC02C;
+    --yellow-deep:#E8A800;
+    --cream:#F8F8F6;
+    --ink:#545353;
+    --ink-strong:#2E2D2D;
+    --card:#FFFFFF;
+    --line:#E8E4DA;
+    --good:#4C8C62;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *,*::before,*::after{box-sizing:inherit;}
+  html{scroll-padding-top:env(safe-area-inset-top,0px);}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --cream:#211F1C;
+      --card:#2B2925;
+      --ink:#D8D3C8;
+      --ink-strong:#F5F1E8;
+      --line:#3C3933;
+    }
+  }
+  :root[data-theme="dark"]{
+    --cream:#211F1C;
+    --card:#2B2925;
+    --ink:#D8D3C8;
+    --ink-strong:#F5F1E8;
+    --line:#3C3933;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink-strong);
+    font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:560px;
+    margin:0 auto;
+    padding:0 20px 56px;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;
+    padding:36px 20px 30px;
+    background:linear-gradient(180deg,var(--yellow) 0%, var(--yellow) 55%, var(--cream) 100%);
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:180px; height:180px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.25);
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    left:-30px; bottom:10px;
+    width:120px; height:120px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.18);
+  }
+  .hero-inner{
+    max-width:560px;
+    margin:0 auto;
+    position:relative;
+    z-index:1;
+  }
+  .kicker{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:var(--ink-strong);
+    opacity:0.75;
+    margin:0 0 6px;
+  }
+  h1{
+    margin:0 0 10px;
+    font-size:27px;
+    font-weight:800;
+    color:var(--ink-strong);
+    letter-spacing:0.01em;
+  }
+  .hero p{
+    margin:0;
+    font-size:15px;
+    color:var(--ink-strong);
+    opacity:0.85;
+    max-width:32em;
+  }
+
+  /* ---------- Sections / cards ---------- */
+  section{margin-top:26px;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:20px;
+  }
+  h2{
+    font-size:16px;
+    font-weight:800;
+    margin:0 0 4px;
+    color:var(--ink-strong);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  h2.spaced{margin-bottom:14px;}
+  h2 .num{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:22px;height:22px;
+    border-radius:50%;
+    background:var(--yellow);
+    color:var(--ink-strong);
+    font-size:12px;
+    font-weight:800;
+    flex:none;
+  }
+  .q-hint{
+    font-size:12px;
+    color:var(--ink);
+    opacity:0.7;
+    margin:0 0 14px 30px;
+  }
+
+  /* multi-select item pills */
+  .item-grid{display:flex;flex-direction:column;gap:10px;}
+  .item-btn{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    text-align:left;
+    padding:14px 14px;
+    border-radius:14px;
+    border:1.5px solid var(--line);
+    background:var(--cream);
+    color:var(--ink-strong);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .item-btn .ic{font-size:22px;flex:none;}
+  .item-btn .tt{display:block;font-weight:700;font-size:14.5px;}
+  .item-btn .ds{display:block;font-weight:400;font-size:12.5px;opacity:0.7;margin-top:2px;}
+  .item-btn .chk{
+    margin-left:auto;
+    flex:none;
+    width:22px;height:22px;
+    border-radius:7px;
+    border:1.5px solid var(--line);
+    background:var(--card);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;
+    color:transparent;
+  }
+  .item-btn.active{
+    border-color:var(--yellow-deep);
+    background:rgba(251,192,44,0.16);
+  }
+  .item-btn.active .chk{
+    background:var(--yellow-deep);
+    border-color:var(--yellow-deep);
+    color:#fff;
+  }
+
+  /* single select pills */
+  .pill-row{display:flex;gap:8px;flex-wrap:wrap;}
+  .pill{
+    flex:1 1 auto;
+    padding:10px 14px;
+    border-radius:999px;
+    border:1.5px solid var(--line);
+    background:var(--cream);
+    color:var(--ink-strong);
+    font-size:13px;
+    font-weight:600;
+    text-align:center;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .pill.active{
+    background:var(--ink-strong);
+    border-color:var(--ink-strong);
+    color:var(--cream);
+  }
+
+  /* height slider */
+  .height-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .height-label{font-size:13px;color:var(--ink);font-weight:600;}
+  .height-value{font-size:26px;font-weight:800;color:var(--ink-strong);}
+  .height-value span{font-size:14px;font-weight:600;opacity:0.6;}
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:8px;
+    border-radius:999px;
+    background:var(--line);
+    outline:none;
+    margin:12px 0 4px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:28px;height:28px;
+    border-radius:50%;
+    background:var(--yellow);
+    border:3px solid var(--card);
+    box-shadow:0 1px 4px rgba(0,0,0,0.25);
+    cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:28px;height:28px;
+    border-radius:50%;
+    background:var(--yellow);
+    border:3px solid var(--card);
+    box-shadow:0 1px 4px rgba(0,0,0,0.25);
+    cursor:pointer;
+  }
+  .scale{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:var(--ink);
+    opacity:0.55;
+  }
+
+  /* results */
+  .result-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .result-card{
+    background:var(--cream);
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .result-card .rname{
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-strong);
+  }
+  .result-card .rsub{
+    font-size:11.5px;
+    color:var(--ink);
+    opacity:0.7;
+    margin-top:2px;
+  }
+  .result-card .rseg{
+    font-size:22px;
+    font-weight:800;
+    color:var(--ink-strong);
+    text-align:right;
+    flex:none;
+  }
+  .empty-note{
+    font-size:13px;
+    color:var(--ink);
+    opacity:0.7;
+    text-align:center;
+    padding:10px 0;
+  }
+  .note-box{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(251,192,44,0.15);
+    border:1px solid rgba(232,168,0,0.35);
+    font-size:12.5px;
+    color:var(--ink-strong);
+  }
+  .note-box b{color:var(--ink-strong);}
+  .warn{
+    margin-top:10px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:rgba(76,140,98,0.12);
+    border:1px solid rgba(76,140,98,0.35);
+    font-size:12.5px;
+    color:var(--ink-strong);
+  }
+
+  /* ---------- carousel ---------- */
+  .carousel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .swipe-hint{
+    font-size:12px;
+    font-weight:600;
+    color:var(--yellow-deep);
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .swipe-hint .arrow{
+    display:inline-block;
+    animation:nudge 1.6s ease-in-out infinite;
+  }
+  @keyframes nudge{
+    0%,100%{transform:translateX(0);}
+    50%{transform:translateX(4px);}
+  }
+  .carousel{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:14px;
+    margin:14px -20px 0;
+    padding:0 20px 6px;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .carousel::-webkit-scrollbar{display:none;}
+  .slide{
+    flex:0 0 100%;
+    scroll-snap-align:start;
+    background:var(--cream);
+    border:1.5px solid var(--line);
+    border-radius:16px;
+    padding:18px;
+  }
+  .slide-title{
+    font-size:14.5px;
+    font-weight:800;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .dots{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:12px;
+  }
+  .dot-ind{
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--line);
+  }
+  .dot-ind.active{
+    background:var(--yellow-deep);
+    width:16px;
+    border-radius:4px;
+  }
+
+  .why-list{display:flex;flex-direction:column;gap:12px;}
+  .why-item{display:flex;gap:12px;align-items:flex-start;}
+  .why-ic{
+    flex:none;
+    width:34px;height:34px;
+    border-radius:10px;
+    background:var(--yellow);
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;
+  }
+  .why-text b{display:block;font-size:13.5px;font-weight:700;margin-bottom:2px;}
+  .why-text span{font-size:12.5px;color:var(--ink);opacity:0.85;}
+
+  .posture-figure{
+    width:100%;
+    max-width:280px;
+    margin:0 auto 8px;
+    display:block;
+  }
+  .posture-checks{display:flex;flex-direction:column;gap:9px;margin-top:6px;}
+  .check-item{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink-strong);}
+  .check-item .dot{
+    flex:none;
+    width:20px;height:20px;
+    border-radius:50%;
+    background:var(--good);
+    color:#fff;
+    font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;
+    margin-top:1px;
+  }
+  .check-item b{display:block;font-weight:700;margin-bottom:1px;}
+  .check-item span.sub{opacity:0.75;font-size:12px;}
+
+  .perk-list{display:flex;flex-direction:column;gap:12px;}
+  .perk-item{display:flex;gap:12px;align-items:flex-start;}
+  .perk-ic{
+    flex:none;
+    width:34px;height:34px;
+    border-radius:10px;
+    background:var(--good);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+  }
+  .perk-text b{display:block;font-size:13.5px;font-weight:700;margin-bottom:2px;}
+  .perk-text span{font-size:12.5px;color:var(--ink);opacity:0.85;}
+
+  /* CTA */
+  .cta-wrap{margin-top:30px;text-align:center;}
+  .cta-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
+    padding:16px 20px;
+    border-radius:999px;
+    background:var(--ink-strong);
+    color:var(--yellow);
+    font-size:16px;
+    font-weight:800;
+    text-decoration:none;
+    border:none;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+  }
+  .cta-sub{margin-top:10px;font-size:12px;color:var(--ink);opacity:0.65;}
+
+  /* lamp cross-sell */
+  .lamp-card{
+    margin-top:16px;
+    background:linear-gradient(135deg, rgba(251,192,44,0.18), rgba(251,192,44,0.05));
+    border:1.5px solid rgba(232,168,0,0.4);
+    border-radius:18px;
+    padding:18px;
+  }
+  .lamp-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .lamp-ic{
+    flex:none;
+    width:42px;height:42px;
+    border-radius:12px;
+    background:var(--yellow);
+    display:flex;align-items:center;justify-content:center;
+    font-size:22px;
+  }
+  .lamp-top b{font-size:14.5px;font-weight:800;display:block;}
+  .lamp-top span{font-size:12px;color:var(--ink);opacity:0.75;}
+  .lamp-card p{font-size:12.5px;color:var(--ink-strong);opacity:0.9;margin:0 0 12px;}
+  .code-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .code-label{font-size:12px;color:var(--ink);opacity:0.75;}
+  .code-val{
+    font-family:ui-monospace,Menlo,monospace;
+    font-weight:800;
+    font-size:14px;
+    letter-spacing:0.06em;
+    background:var(--card);
+    border:1.5px dashed var(--yellow-deep);
+    border-radius:8px;
+    padding:4px 10px;
+    color:var(--ink-strong);
+  }
+  .lamp-btn{
+    display:inline-flex;
+    width:100%;
+    align-items:center;
+    justify-content:center;
+    padding:13px 18px;
+    border-radius:999px;
+    background:var(--card);
+    border:1.5px solid var(--ink-strong);
+    color:var(--ink-strong);
+    font-size:14px;
+    font-weight:700;
+    text-decoration:none;
+  }
+
+  footer{
+    margin-top:34px;
+    text-align:center;
+    font-size:11.5px;
+    color:var(--ink);
+    opacity:0.5;
+  }
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <p class="kicker">愛兒館 兒童桌椅｜調校小幫手</p>
+    <h1>幫孩子調到剛剛好的高度</h1>
+    <p>選好你買的品項、滑一下身高，馬上告訴你桌椅要調到第幾段，坐姿才會端正、不傷脊椎。</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- Q1: multi-select items -->
+  <section>
+    <div class="card">
+      <h2><span class="num">1</span>你買了哪些品項？</h2>
+      <p class="q-hint">可以複選</p>
+      <div class="item-grid" id="itemButtons">
+        <button class="item-btn" data-item="table">
+          <span class="ic">🪵</span>
+          <span>
+            <span class="tt">我的第一張小桌子</span>
+            <span class="ds">每段差 2.5cm</span>
+          </span>
+          <span class="chk">✓</span>
+        </button>
+        <button class="item-btn" data-item="chairSmall">
+          <span class="ic">🪑</span>
+          <span>
+            <span class="tt">我的第一張小椅子</span>
+            <span class="ds">原木小椅，3段（16.5 / 23.5 / 30.5cm）</span>
+          </span>
+          <span class="chk">✓</span>
+        </button>
+        <button class="item-btn" data-item="chairAdatto">
+          <span class="ic">🧒</span>
+          <span>
+            <span class="tt">學童椅</span>
+            <span class="ds">ADATTO 學童椅，8段椅面（43–55cm）</span>
+          </span>
+          <span class="chk">✓</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Q2: drawer -->
+  <section>
+    <div class="card">
+      <h2 class="spaced"><span class="num">2</span>桌子有加裝下方抽屜嗎？</h2>
+      <p class="q-hint" style="margin-left:0;">加裝抽屜時大腿容易碰到抽屜底部；如果孩子身材較肉、大腿較厚，也建議調高一段避免擠壓</p>
+      <div class="pill-row">
+        <div class="pill active" data-group="drawer" data-value="no">沒有加裝</div>
+        <div class="pill" data-group="drawer" data-value="yes">有加裝抽屜</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Q3: usage -->
+  <section>
+    <div class="card">
+      <h2 class="spaced"><span class="num">3</span>桌子的用途是？</h2>
+      <p class="q-hint" style="margin-left:0;">玩玩具、畫畫時動作較大，建議桌面可以再高一點</p>
+      <div class="pill-row">
+        <div class="pill active" data-group="activity" data-value="study">看書寫字為主</div>
+        <div class="pill" data-group="activity" data-value="play">玩玩具／畫畫居多</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Q4: height -->
+  <section>
+    <div class="card">
+      <h2 class="spaced"><span class="num">4</span>孩子的身高</h2>
+      <div class="height-row">
+        <span class="height-label">拖曳滑桿調整</span>
+        <span class="height-value" id="heightVal">100<span> cm</span></span>
+      </div>
+      <input type="range" id="heightSlider" min="70" max="165" value="100" step="1">
+      <div class="scale"><span>70cm</span><span>115cm</span><span>165cm</span></div>
+    </div>
+  </section>
+
+  <!-- results -->
+  <section>
+    <div class="card">
+      <h2 class="spaced">✨ 建議調整段數</h2>
+      <div class="result-list" id="resultList"></div>
+      <div class="warn hidden" id="drawerWarn">
+        ⚠️ 已依「加裝抽屜」自動加高 1 段，避免孩子大腿卡到抽屜底部。實際使用時仍建議確認大腿與抽屜留有空隙。
+      </div>
+      <div class="note-box" id="resultNote"></div>
+    </div>
+  </section>
+
+  <!-- education carousel -->
+  <section>
+    <div class="card">
+      <div class="carousel-head">
+        <h2 style="margin:0;">為什麼要調對高度？</h2>
+        <span class="swipe-hint">向右滑<span class="arrow">▸</span></span>
+      </div>
+
+      <div class="carousel" id="carousel">
+        <!-- Slide 1: importance -->
+        <div class="slide">
+          <h3 class="slide-title">👀 坐姿的重要性</h3>
+          <div class="why-list">
+            <div class="why-item">
+              <div class="why-ic">🦴</div>
+              <div class="why-text">
+                <b>脊椎還在發育</b>
+                <span>桌椅過高過低都會讓孩子駝背、歪坐，長期下來容易影響脊椎發育與體態。</span>
+              </div>
+            </div>
+            <div class="why-item">
+              <div class="why-ic">👓</div>
+              <div class="why-text">
+                <b>影響用眼距離</b>
+                <span>桌子太低，孩子會不自覺低頭靠近桌面，拉近用眼距離，增加近視風險。</span>
+              </div>
+            </div>
+            <div class="why-item">
+              <div class="why-ic">🎯</div>
+              <div class="why-text">
+                <b>影響專注力</b>
+                <span>雙腳懸空、椅子不合身時，孩子會一直扭動找舒服姿勢，坐不住也難專心。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2: correct posture -->
+        <div class="slide">
+          <h3 class="slide-title">✅ 正確坐姿怎麼看</h3>
+          <svg class="posture-figure" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+            <line x1="20" y1="205" x2="300" y2="205" stroke="#545353" stroke-opacity="0.25" stroke-width="2"/>
+            <rect x="165" y="95" width="110" height="10" rx="3" fill="#FBC02C"/>
+            <rect x="175" y="105" width="6" height="95" fill="#E8A800"/>
+            <rect x="260" y="105" width="6" height="95" fill="#E8A800"/>
+            <rect x="70" y="150" width="55" height="9" rx="3" fill="#D8D3C8"/>
+            <rect x="76" y="159" width="6" height="46" fill="#B9B3A6"/>
+            <rect x="113" y="159" width="6" height="46" fill="#B9B3A6"/>
+            <rect x="60" y="105" width="9" height="55" rx="3" fill="#B9B3A6"/>
+            <circle cx="118" cy="70" r="16" fill="#545353"/>
+            <path d="M100 84 Q118 78 136 84 L132 150 Q118 156 104 150 Z" fill="#545353"/>
+            <line x1="132" y1="95" x2="150" y2="100" stroke="#545353" stroke-width="9" stroke-linecap="round"/>
+            <line x1="150" y1="100" x2="150" y2="95" stroke="#545353" stroke-width="9" stroke-linecap="round"/>
+            <line x1="150" y1="100" x2="172" y2="100" stroke="#545353" stroke-width="9" stroke-linecap="round"/>
+            <path d="M150 100 h10 v-10" fill="none" stroke="#4C8C62" stroke-width="2.5"/>
+            <text x="163" y="86" font-size="11" fill="#4C8C62" font-weight="700">90°</text>
+            <line x1="118" y1="148" x2="150" y2="158" stroke="#545353" stroke-width="11" stroke-linecap="round"/>
+            <line x1="150" y1="158" x2="150" y2="196" stroke="#545353" stroke-width="11" stroke-linecap="round"/>
+            <line x1="150" y1="196" x2="168" y2="200" stroke="#545353" stroke-width="10" stroke-linecap="round"/>
+            <path d="M150 158 h-10 v10" fill="none" stroke="#4C8C62" stroke-width="2.5"/>
+            <text x="118" y="172" font-size="11" fill="#4C8C62" font-weight="700">90°</text>
+            <path d="M100 90 Q90 118 104 148" fill="none" stroke="#4C8C62" stroke-width="2" stroke-dasharray="3 3"/>
+          </svg>
+          <div class="posture-checks">
+            <div class="check-item">
+              <div class="dot">1</div>
+              <div><b>手肘直角</b><span class="sub">手肘自然垂下放桌面，呈 90°，肩膀放鬆不聳肩</span></div>
+            </div>
+            <div class="check-item">
+              <div class="dot">2</div>
+              <div><b>雙腳平放</b><span class="sub">腳底完全踩平地面或踏凳，雙腿不懸空，膝蓋呈 90°</span></div>
+            </div>
+            <div class="check-item">
+              <div class="dot">3</div>
+              <div><b>椅背貼合</b><span class="sub">臀部坐到底，背部輕靠椅背，不駝背、不歪坐</span></div>
+            </div>
+            <div class="check-item">
+              <div class="dot">4</div>
+              <div><b>不看死板數字</b><span class="sub">每個孩子腿長比例不同，段數僅供參考，仍以孩子實際坐姿為準微調</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3: product perks -->
+        <div class="slide">
+          <h3 class="slide-title">🌟 愛兒館桌子的優點</h3>
+          <div class="perk-list">
+            <div class="perk-item">
+              <div class="perk-ic">🖥️</div>
+              <div class="perk-text"><b>大桌面</b><span>桌面尺寸夠大，看書、畫畫、拼圖、吃點心都能攤開，兩個孩子一起用也不擁擠。</span></div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-ic">🔆</div>
+              <div class="perk-text"><b>不反光桌面</b><span>桌面經消光處理，燈光不會直接反射刺眼，減少孩子看書寫字時瞇眼、湊近桌面的情形，較能保護視力。</span></div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-ic">🛡️</div>
+              <div class="perk-text"><b>圓角包邊</b><span>桌角、桌邊做圓潤包邊處理，螺絲也採崁入式設計不外露，孩子碰撞或摸到邊緣都不容易刮傷。</span></div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-ic">🧽</div>
+              <div class="perk-text"><b>好整理</b><span>桌面耐刮耐磨，顏料、蠟筆痕跡用濕布就能擦掉，不容易留下污漬，善後超省事。</span></div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-ic">⚖️</div>
+              <div class="perk-text"><b>梯形桌腳不易翻</b><span>桌腳／椅腳採梯形結構設計，孩子起身、後靠時重心穩定，大幅降低翻桌翻椅的風險。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dots" id="dots">
+        <span class="dot-ind active"></span>
+        <span class="dot-ind"></span>
+        <span class="dot-ind"></span>
+      </div>
+    </div>
+  </section>
+
+  <div class="cta-wrap">
+    <a class="cta-btn" href="https://shop.lovekidsco.com.tw/shop/427-tiao260914" target="_blank" rel="noopener">
+      前往愛兒館桌椅團購 →
+    </a>
+    <div class="cta-sub">點擊將前往愛兒館官方團購頁面</div>
+
+    <div class="lamp-card">
+      <div class="lamp-top">
+        <div class="lamp-ic">💡</div>
+        <div>
+          <b>再搭一盞「喜光」護眼檯燈更完整</b>
+          <span>桌椅調好高度後的最後一塊拼圖，就是光線</span>
+        </div>
+      </div>
+      <p>桌椅高度對了，光線也要對。幫孩子的書桌加一盞「喜光」護眼檯燈，看書寫字更不容易疲勞——就是薯條同款的「晶靈燈」。</p>
+      <div class="code-row">
+        <span class="code-label">結帳輸入折扣碼</span>
+        <span class="code-val">STAR100</span>
+      </div>
+      <a class="lamp-btn" href="https://www.sylstarled.com.tw/hidden/shu" target="_blank" rel="noopener">看看護眼檯燈怎麼搭配 →</a>
+    </div>
+  </div>
+
+  <footer>本工具建議段數為簡化參考值，實際請依孩子坐姿雙 90° 原則現場微調。</footer>
+
+</div>
+
+<script>
+(function(){
+  var state = {
+    items: { table:true, chairSmall:true, chairAdatto:false },
+    drawer:'no',
+    activity:'study',
+    height:100
+  };
+
+  // ---- Q1 multi-select ----
+  var itemButtons = document.querySelectorAll('.item-btn');
+  function syncItemButtons(){
+    itemButtons.forEach(function(btn){
+      var key = btn.getAttribute('data-item');
+      btn.classList.toggle('active', !!state.items[key]);
+    });
+  }
+  itemButtons.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var key = btn.getAttribute('data-item');
+      state.items[key] = !state.items[key];
+      syncItemButtons();
+      render();
+    });
+  });
+  syncItemButtons();
+
+  // ---- Q2 / Q3 single-select pills ----
+  document.querySelectorAll('.pill').forEach(function(p){
+    p.addEventListener('click', function(){
+      var group = p.getAttribute('data-group');
+      document.querySelectorAll('.pill[data-group="'+group+'"]').forEach(function(x){ x.classList.remove('active'); });
+      p.classList.add('active');
+      state[group] = p.getAttribute('data-value');
+      render();
+    });
+  });
+
+  // ---- Q4 height slider ----
+  var slider = document.getElementById('heightSlider');
+  var heightVal = document.getElementById('heightVal');
+  slider.addEventListener('input', function(){
+    state.height = parseInt(slider.value, 10);
+    heightVal.innerHTML = state.height + '<span> cm</span>';
+    render();
+  });
+
+  // ---- carousel dots ----
+  var carousel = document.getElementById('carousel');
+  var dots = document.querySelectorAll('#dots .dot-ind');
+  carousel.addEventListener('scroll', function(){
+    var idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+    dots.forEach(function(d,i){ d.classList.toggle('active', i===idx); });
+  });
+
+  function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+  function round1(n){ return Math.round(n*10)/10; }
+
+  // 原木小椅子 (3段)
+  var chair3 = [16.5, 23.5, 30.5];
+  function chairSegFromHeight3(h){
+    if (h < 85) return 1;
+    if (h < 100) return 2;
+    return 3;
+  }
+
+  // ADATTO 學童椅 (8段, 43-55cm)
+  function adattoSeatHeight(h){
+    var hh = clamp(h, 120, 175);
+    return 43 + (55-43) * ((hh-120)/(175-120));
+  }
+  var adattoStep = (55-43)/7;
+  function adattoSeg(seatH){
+    return clamp(Math.round((seatH-43)/adattoStep) + 1, 1, 8);
+  }
+  function adattoSeatFromSeg(seg){
+    return 43 + (seg-1)*adattoStep;
+  }
+
+  // 我的第一張小桌子 desk segments, 2.5cm apart from 38.5 (seg1) up to seg8 (56cm)
+  function deskSegFromHeightRaw(deskH){
+    return Math.round((deskH-38.5)/2.5) + 1;
+  }
+  function deskCmFromSeg(seg){
+    return 38.5 + (seg-1)*2.5;
+  }
+
+  function render(){
+    var list = document.getElementById('resultList');
+    var note = document.getElementById('resultNote');
+    var drawerWarn = document.getElementById('drawerWarn');
+    list.innerHTML = '';
+
+    var h = state.height;
+    var drawerBonus = (state.drawer === 'yes') ? 1 : 0;
+    var activityBonus = (state.activity === 'play') ? 1 : 0;
+    var noteParts = [];
+    var anySelected = state.items.table || state.items.chairSmall || state.items.chairAdatto;
+
+    if (!anySelected){
+      list.innerHTML = '<div class="empty-note">請先在上方選擇你買的品項</div>';
+      note.innerHTML = '';
+      drawerWarn.classList.add('hidden');
+      return;
+    }
+
+    var seatRef = null; // reference seat height for desk calc
+
+    if (state.items.chairSmall){
+      var cSeg = chairSegFromHeight3(h);
+      var cH = chair3[cSeg-1];
+      seatRef = cH;
+      list.innerHTML += resultCardHTML('我的第一張小椅子', '座高約 ' + cH + ' cm', '第 ' + cSeg + ' 段');
+    }
+
+    if (state.items.chairAdatto){
+      var seatH = adattoSeatHeight(h);
+      var aSeg = adattoSeg(seatH);
+      var realSeatH = adattoSeatFromSeg(aSeg);
+      if (seatRef === null) seatRef = realSeatH;
+      list.innerHTML += resultCardHTML('學童椅（ADATTO）', '椅面約 ' + round1(realSeatH) + ' cm（範圍 43–55cm）', '第 ' + aSeg + ' 段');
+    }
+
+    if (state.items.table){
+      var targetDeskH;
+      if (seatRef !== null){
+        targetDeskH = seatRef + 21;
+        noteParts.push('桌高＝椅座高度 + 20〜22cm');
+      } else {
+        targetDeskH = 0.45*h + 1.25;
+        noteParts.push('尚未選椅子，改依身高直接估算桌高');
+      }
+      targetDeskH += activityBonus * 2.5;
+
+      var rawSeg = deskSegFromHeightRaw(targetDeskH) + drawerBonus;
+      var overMax = rawSeg > 8;
+      var dSeg = clamp(rawSeg, 1, 8);
+      var dH = deskCmFromSeg(dSeg);
+
+      list.innerHTML += resultCardHTML('我的第一張小桌子', '桌高約 ' + round1(dH) + ' cm', '第 ' + dSeg + ' 段');
+
+      if (overMax){
+        noteParts.push('孩子身高已接近小桌子上限，若還想再升高，建議改用學童桌椅系列');
+      }
+    }
+
+    noteParts.push('每段桌高差 2.5cm');
+    if (drawerBonus) noteParts.push('已因「加裝抽屜」加高 1 段');
+    if (activityBonus) noteParts.push('已因「玩玩具／畫畫居多」加高一些');
+
+    note.innerHTML = '<b>建議邏輯：</b>' + noteParts.join('；') + '。';
+    drawerWarn.classList.toggle('hidden', drawerBonus === 0 || !state.items.table);
+  }
+
+  function resultCardHTML(name, sub, seg){
+    return '<div class="result-card">' +
+      '<div><div class="rname">'+name+'</div><div class="rsub">'+sub+'</div></div>' +
+      '<div class="rseg">'+seg+'</div>' +
+    '</div>';
+  }
+
+  render();
+})();
+</script>
+
+</body>
+</html>
