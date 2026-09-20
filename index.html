@@ -539,7 +539,7 @@
           <span class="ic">🪑</span>
           <span>
             <span class="tt">我的第一張小椅子</span>
-            <span class="ds">原木小椅，3段（16.5 / 23.5 / 30.5cm）</span>
+            <span class="ds">原木小椅，座高 3 段：16.5 → 23.5 → 30.5cm（由矮到高）／適合約 1–6 歲</span>
           </span>
           <span class="chk">✓</span>
         </button>
@@ -547,7 +547,7 @@
           <span class="ic">🧒</span>
           <span>
             <span class="tt">學童椅</span>
-            <span class="ds">ADATTO 學童椅，8段椅面（43–55cm）</span>
+            <span class="ds">ADATTO 學童椅，8 段可調／依身高 100cm 以上使用，段數由矮到高對照身高</span>
           </span>
           <span class="chk">✓</span>
         </button>
@@ -682,6 +682,10 @@
             </div>
             <div class="check-item">
               <div class="dot">4</div>
+              <div><b>座面微後傾</b><span class="sub">椅面略往後傾的設計，能幫助孩子自然坐好坐滿，不易往前滑出椅面</span></div>
+            </div>
+            <div class="check-item">
+              <div class="dot">5</div>
               <div><b>不看死板數字</b><span class="sub">每個孩子腿長比例不同，段數僅供參考，仍以孩子實際坐姿為準微調</span></div>
             </div>
           </div>
@@ -710,6 +714,10 @@
             <div class="perk-item">
               <div class="perk-ic">⚖️</div>
               <div class="perk-text"><b>梯形桌腳不易翻</b><span>桌腳／椅腳採梯形結構設計，孩子起身、後靠時重心穩定，大幅降低翻桌翻椅的風險。</span></div>
+            </div>
+            <div class="perk-item">
+              <div class="perk-ic">💪</div>
+              <div class="perk-text"><b>耐重、耐用</b><span>我的第一張小椅子座板可調到最高當作大人的陪伴椅使用，耐重達 80kg，陪孩子從 1 歲坐到 6 歲。</span></div>
             </div>
           </div>
         </div>
@@ -816,17 +824,24 @@
     return 3;
   }
 
-  // ADATTO 學童椅 (8段, 43-55cm)
-  function adattoSeatHeight(h){
-    var hh = clamp(h, 120, 175);
-    return 43 + (55-43) * ((hh-120)/(175-120));
-  }
-  var adattoStep = (55-43)/7;
-  function adattoSeg(seatH){
-    return clamp(Math.round((seatH-43)/adattoStep) + 1, 1, 8);
-  }
-  function adattoSeatFromSeg(seg){
-    return 43 + (seg-1)*adattoStep;
+  // ADATTO 學童椅 官方對照表：由矮（第1段）到高（第8段），依身高區間對應
+  var adattoTable = [
+    { seg:1, min:100, max:120, cm:55   },
+    { seg:2, min:120, max:130, cm:53   },
+    { seg:3, min:130, max:135, cm:51   },
+    { seg:4, min:135, max:145, cm:49.5 },
+    { seg:5, min:145, max:150, cm:48   },
+    { seg:6, min:150, max:155, cm:46.5 },
+    { seg:7, min:155, max:160, cm:44.5 },
+    { seg:8, min:160, max:999, cm:43   }
+  ];
+  function adattoLookup(h){
+    if (h < adattoTable[0].min) return adattoTable[0];
+    for (var i=0;i<adattoTable.length;i++){
+      var row = adattoTable[i];
+      if (h >= row.min && h < row.max) return row;
+    }
+    return adattoTable[adattoTable.length-1];
   }
 
   // 我的第一張小桌子 desk segments, 2.5cm apart from 38.5 (seg1) up to seg8 (56cm)
@@ -866,11 +881,9 @@
     }
 
     if (state.items.chairAdatto){
-      var seatH = adattoSeatHeight(h);
-      var aSeg = adattoSeg(seatH);
-      var realSeatH = adattoSeatFromSeg(aSeg);
-      if (seatRef === null) seatRef = realSeatH;
-      list.innerHTML += resultCardHTML('學童椅（ADATTO）', '椅面約 ' + round1(realSeatH) + ' cm（範圍 43–55cm）', '第 ' + aSeg + ' 段');
+      var row = adattoLookup(h);
+      var maxLabel = row.max >= 999 ? (row.min + 'cm 以上') : (row.min + '–' + row.max + 'cm');
+      list.innerHTML += resultCardHTML('學童椅', '適用身高 ' + maxLabel + '（整體高度約 ' + row.cm + ' cm）', '第 ' + row.seg + ' 段');
     }
 
     if (state.items.table){
@@ -880,7 +893,7 @@
         noteParts.push('桌高＝椅座高度 + 20〜22cm');
       } else {
         targetDeskH = 0.45*h + 1.25;
-        noteParts.push('尚未選椅子，改依身高直接估算桌高');
+        noteParts.push('依身高直接估算桌高（學童椅官方資料僅提供整體高度，未提供椅座高度，故不納入此計算）');
       }
       targetDeskH += activityBonus * 2.5;
 
