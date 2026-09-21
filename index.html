@@ -524,22 +524,22 @@
   <!-- Q1: multi-select items -->
   <section>
     <div class="card">
-      <h2><span class="num">1</span>你買了哪些品項？</h2>
+      <h2><span class="num">1</span>你需要哪些商品</h2>
       <p class="q-hint">可以複選</p>
       <div class="item-grid" id="itemButtons">
         <button class="item-btn" data-item="table">
-          <span class="ic">🪵</span>
+          <span class="ic">⬜</span>
           <span>
-            <span class="tt">我的第一張小桌子</span>
-            <span class="ds">每段差 2.5cm</span>
+            <span class="tt">小桌子</span>
+            <span class="ds">我的第一張小桌子，13段高度調節，38.5–72cm，每段差約2.5cm</span>
           </span>
           <span class="chk">✓</span>
         </button>
         <button class="item-btn" data-item="chairSmall">
           <span class="ic">🪑</span>
           <span>
-            <span class="tt">我的第一張小椅子</span>
-            <span class="ds">原木小椅，座高 3 段：16.5 → 23.5 → 30.5cm（由矮到高）／適合約 1–6 歲</span>
+            <span class="tt">小椅子</span>
+            <span class="ds">我的第一張小椅子，原木小椅，座高 3 段：16.5 → 23.5 → 30.5cm（由矮到高）／適合約 1–6 歲</span>
           </span>
           <span class="chk">✓</span>
         </button>
@@ -571,7 +571,7 @@
   <section>
     <div class="card">
       <h2 class="spaced"><span class="num">3</span>桌子的用途是？</h2>
-      <p class="q-hint" style="margin-left:0;">玩玩具、畫畫時動作較大，建議桌面可以再高一點</p>
+      <p class="q-hint" style="margin-left:0;">主要看書寫字時，桌面建議稍微高一點才不會駝背；主要玩玩具、畫畫時，桌面可以稍微低一點更好操作</p>
       <div class="pill-row">
         <div class="pill active" data-group="activity" data-value="study">看書寫字為主</div>
         <div class="pill" data-group="activity" data-value="play">玩玩具／畫畫居多</div>
@@ -589,6 +589,16 @@
       </div>
       <input type="range" id="heightSlider" min="70" max="165" value="100" step="1">
       <div class="scale"><span>70cm</span><span>115cm</span><span>165cm</span></div>
+
+      <div class="toggle-group hidden" id="chairHeightGroup">
+        <div class="toggle-title">你現有的椅子座高大約是？</div>
+        <div class="toggle-hint">還沒買愛兒館的椅子時，用來估算小桌子要調到第幾段</div>
+        <input type="range" id="chairHeightSlider" min="15" max="45" value="28" step="0.5">
+        <div class="height-row" style="margin-top:6px;">
+          <span class="height-label">拖曳滑桿調整</span>
+          <span class="height-value" id="chairHeightVal">28<span> cm</span></span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -598,7 +608,16 @@
       <h2 class="spaced">✨ 建議調整段數</h2>
       <div class="result-list" id="resultList"></div>
       <div class="warn hidden" id="drawerWarn">
-        ⚠️ 已依「加裝抽屜」自動加高 1 段，避免孩子大腿卡到抽屜底部。實際使用時仍建議確認大腿與抽屜留有空隙。
+        ⚠️ 已依「加裝抽屜／孩子較肉」自動加高 1 段，避免孩子大腿卡到抽屜底部或擠壓。實際使用時仍建議確認留有空隙。
+      </div>
+      <div class="warn hidden" id="chairWarn">
+        📏 孩子身高已超過小椅子的建議範圍，「我的第一張小椅子」最高檔可能已經不夠用，建議換成 8 段可調的學童椅。
+      </div>
+      <div class="warn hidden" id="adattoSuggestNote">
+        💡 孩子身高已經超過 100cm，如果還沒買椅子，比起小椅子，會更建議直接選可調到更高的學童椅，用得比較久。
+      </div>
+      <div class="warn hidden" id="earlyBuyNote">
+        🕐 孩子身高已經接近小學年齡（約115cm），小桌子接下來能用的時間有限，也可以評估直接選一張「學習書桌」是否更適合、更划算。
       </div>
       <div class="note-box" id="resultNote"></div>
     </div>
@@ -764,7 +783,8 @@
     items: { table:true, chairSmall:true, chairAdatto:false },
     drawer:'no',
     activity:'study',
-    height:100
+    height:100,
+    chairHeight:28
   };
 
   // ---- Q1 multi-select ----
@@ -805,6 +825,16 @@
     render();
   });
 
+  // ---- 現有椅子高度 slider (only shown when table selected but no 愛兒館椅子) ----
+  var chairHeightGroup = document.getElementById('chairHeightGroup');
+  var chairHeightSlider = document.getElementById('chairHeightSlider');
+  var chairHeightVal = document.getElementById('chairHeightVal');
+  chairHeightSlider.addEventListener('input', function(){
+    state.chairHeight = parseFloat(chairHeightSlider.value);
+    chairHeightVal.innerHTML = state.chairHeight + '<span> cm</span>';
+    render();
+  });
+
   // ---- carousel dots ----
   var carousel = document.getElementById('carousel');
   var dots = document.querySelectorAll('#dots .dot-ind');
@@ -816,15 +846,15 @@
   function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
   function round1(n){ return Math.round(n*10)/10; }
 
-  // 原木小椅子 (3段)
+  // 原木小椅子 (3段)：依官方對照表，身高0–70→第1段、70–98→第2段、98–126→第3段
   var chair3 = [16.5, 23.5, 30.5];
   function chairSegFromHeight3(h){
-    if (h < 85) return 1;
-    if (h < 100) return 2;
+    if (h < 70) return 1;
+    if (h < 98) return 2;
     return 3;
   }
 
-  // ADATTO 學童椅 官方對照表：由矮（第1段）到高（第8段），依身高區間對應
+  // ADATTO 學童椅 官方對照表（椅面8段高度與身高對照）
   var adattoTable = [
     { seg:1, min:100, max:120, cm:55   },
     { seg:2, min:120, max:130, cm:53   },
@@ -844,77 +874,105 @@
     return adattoTable[adattoTable.length-1];
   }
 
-  // 我的第一張小桌子 desk segments, 2.5cm apart from 38.5 (seg1) up to seg8 (56cm)
+  // 我的第一張小桌子（愛兒館離乳桌）：13段高度調節，38.5cm～72cm，每段約差2.5cm，從1歲用到接近青少年
+  var DESK_MAX_SEG = 13;
+  var DESK_MAX_CM = 72;
   function deskSegFromHeightRaw(deskH){
     return Math.round((deskH-38.5)/2.5) + 1;
   }
   function deskCmFromSeg(seg){
-    return 38.5 + (seg-1)*2.5;
+    return Math.min(DESK_MAX_CM, 38.5 + (seg-1)*2.5);
+  }
+  // 桌高公式：椅高 ＋ 身高 × 0.18，取最接近的段數
+  function deskTargetFromChairAndHeight(chairH, h){
+    return chairH + h*0.18;
   }
 
   function render(){
     var list = document.getElementById('resultList');
     var note = document.getElementById('resultNote');
     var drawerWarn = document.getElementById('drawerWarn');
+    var chairWarn = document.getElementById('chairWarn');
+    var adattoSuggestNote = document.getElementById('adattoSuggestNote');
+    var earlyBuyNote = document.getElementById('earlyBuyNote');
     list.innerHTML = '';
 
     var h = state.height;
     var drawerBonus = (state.drawer === 'yes') ? 1 : 0;
-    var activityBonus = (state.activity === 'play') ? 1 : 0;
+    var activityBonus = (state.activity === 'play') ? -1 : 0;
     var noteParts = [];
     var anySelected = state.items.table || state.items.chairSmall || state.items.chairAdatto;
 
+    // 顯示/隱藏「現有椅子高度」欄位：只在只買桌子（沒選任何愛兒館椅子）時需要
+    var needChairHeightInput = state.items.table && !state.items.chairSmall && !state.items.chairAdatto;
+    chairHeightGroup.classList.toggle('hidden', !needChairHeightInput);
+
     if (!anySelected){
-      list.innerHTML = '<div class="empty-note">請先在上方選擇你買的品項</div>';
+      list.innerHTML = '<div class="empty-note">請先在上方選擇你需要的商品</div>';
       note.innerHTML = '';
       drawerWarn.classList.add('hidden');
+      chairWarn.classList.add('hidden');
+      adattoSuggestNote.classList.add('hidden');
+      earlyBuyNote.classList.add('hidden');
       return;
     }
 
-    var seatRef = null; // reference seat height for desk calc
+    var chairOverMax = false;
 
     if (state.items.chairSmall){
       var cSeg = chairSegFromHeight3(h);
       var cH = chair3[cSeg-1];
-      seatRef = cH;
-      list.innerHTML += resultCardHTML('我的第一張小椅子', '座高約 ' + cH + ' cm', '第 ' + cSeg + ' 段');
+      list.innerHTML += resultCardHTML('小椅子', '座高約 ' + cH + ' cm', '第 ' + cSeg + ' 段');
+      if (h >= 118) chairOverMax = true;
     }
 
     if (state.items.chairAdatto){
       var row = adattoLookup(h);
       var maxLabel = row.max >= 999 ? (row.min + 'cm 以上') : (row.min + '–' + row.max + 'cm');
-      list.innerHTML += resultCardHTML('學童椅', '適用身高 ' + maxLabel + '（整體高度約 ' + row.cm + ' cm）', '第 ' + row.seg + ' 段');
+      list.innerHTML += resultCardHTML('學童椅', '適用身高 ' + maxLabel + '（椅面約 ' + row.cm + ' cm）', '第 ' + row.seg + ' 段');
     }
 
     if (state.items.table){
-      var targetDeskH;
-      if (seatRef !== null){
-        targetDeskH = seatRef + 21;
-        noteParts.push('桌高＝椅座高度 + 20〜22cm');
-      } else {
-        targetDeskH = 0.45*h + 1.25;
-        noteParts.push('依身高直接估算桌高（學童椅官方資料僅提供整體高度，未提供椅座高度，故不納入此計算）');
+      var deskRows = [];
+      if (state.items.chairSmall){
+        var smallSeat = chair3[chairSegFromHeight3(h)-1];
+        deskRows.push({ label:'小桌子', sub: (state.items.chairAdatto ? '搭配小椅子' : ''), chairH: smallSeat });
       }
-      targetDeskH += activityBonus * 2.5;
+      if (state.items.chairAdatto){
+        var adattoSeat = adattoLookup(h).cm;
+        deskRows.push({ label:'小桌子', sub: (state.items.chairSmall ? '搭配學童椅' : ''), chairH: adattoSeat });
+      }
+      if (deskRows.length === 0){
+        deskRows.push({ label:'小桌子', sub:'搭配你現有的椅子', chairH: state.chairHeight });
+      }
 
-      var rawSeg = deskSegFromHeightRaw(targetDeskH) + drawerBonus;
-      var overMax = rawSeg > 8;
-      var dSeg = clamp(rawSeg, 1, 8);
-      var dH = deskCmFromSeg(dSeg);
+      deskRows.forEach(function(row){
+        var targetDeskH = deskTargetFromChairAndHeight(row.chairH, h) + drawerBonus*2.5 + activityBonus*2.5;
+        var name = row.sub ? (row.label + '（' + row.sub + '）') : row.label;
 
-      list.innerHTML += resultCardHTML('我的第一張小桌子', '桌高約 ' + round1(dH) + ' cm', '第 ' + dSeg + ' 段');
+        if (targetDeskH > DESK_MAX_CM){
+          list.innerHTML += resultCardHTML(name, '桌高最高約 ' + DESK_MAX_CM + ' cm（第' + DESK_MAX_SEG + '段已到頂）', '第 ' + DESK_MAX_SEG + ' 段');
+        } else {
+          var dSeg = clamp(deskSegFromHeightRaw(targetDeskH), 1, DESK_MAX_SEG);
+          var dH = deskCmFromSeg(dSeg);
+          list.innerHTML += resultCardHTML(name, '桌高約 ' + round1(dH) + ' cm', '第 ' + dSeg + ' 段');
+        }
+      });
 
-      if (overMax){
-        noteParts.push('孩子身高已接近小桌子上限，若還想再升高，建議改用學童桌椅系列');
+      noteParts.push('桌高＝椅高 ＋ 身高 × 0.18，取最接近的段數');
+      if (deskRows.length > 1){
+        noteParts.push('搭配的椅子不同，算出來的桌高也會不一樣，所以分開列出來給你對照');
       }
     }
 
-    noteParts.push('每段桌高差 2.5cm');
-    if (drawerBonus) noteParts.push('已因「加裝抽屜」加高 1 段');
-    if (activityBonus) noteParts.push('已因「玩玩具／畫畫居多」加高一些');
+    if (drawerBonus) noteParts.push('已因「加裝抽屜／孩子較肉」加高 1 段');
+    if (activityBonus) noteParts.push('已因「玩玩具／畫畫居多」降低 1 段');
 
-    note.innerHTML = '<b>建議邏輯：</b>' + noteParts.join('；') + '。';
+    note.innerHTML = noteParts.length ? ('<b>建議邏輯：</b>' + noteParts.join('；') + '。') : '';
     drawerWarn.classList.toggle('hidden', drawerBonus === 0 || !state.items.table);
+    chairWarn.classList.toggle('hidden', !chairOverMax);
+    adattoSuggestNote.classList.toggle('hidden', !(state.items.chairSmall && !state.items.chairAdatto && h > 100));
+    earlyBuyNote.classList.toggle('hidden', !(state.items.table && h >= 115));
   }
 
   function resultCardHTML(name, sub, seg){
