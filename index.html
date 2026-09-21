@@ -587,8 +587,8 @@
         <span class="height-label">拖曳滑桿調整</span>
         <span class="height-value" id="heightVal">100<span> cm</span></span>
       </div>
-      <input type="range" id="heightSlider" min="70" max="165" value="100" step="1">
-      <div class="scale"><span>70cm</span><span>115cm</span><span>165cm</span></div>
+      <input type="range" id="heightSlider" min="65" max="165" value="100" step="1">
+      <div class="scale"><span>65cm</span><span>115cm</span><span>165cm</span></div>
 
       <div class="toggle-group hidden" id="chairHeightGroup">
         <div class="toggle-title">你現有的椅子座高大約是？</div>
@@ -846,11 +846,11 @@
   function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
   function round1(n){ return Math.round(n*10)/10; }
 
-  // 原木小椅子 (3段)：依官方對照表，身高0–70→第1段、70–98→第2段、98–126→第3段
+  // 原木小椅子 (3段)：依對照表，身高65–75→第1段、76–103→第2段、104cm以上→第3段
   var chair3 = [16.5, 23.5, 30.5];
   function chairSegFromHeight3(h){
-    if (h < 70) return 1;
-    if (h < 98) return 2;
+    if (h <= 75) return 1;
+    if (h <= 103) return 2;
     return 3;
   }
 
